@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { updateSEO } from '../utils/seoEngine.js';
 import { suitTypes, perforationOptions, protectionOptions, teamPresets, heroImages, designInstructions, uploadProcessSteps } from '../data/configOptions.js';
 
-const SuitConfigurator = ({ onNavigate, onAddToCart, cart }) => {
+const SuitConfigurator = ({ onNavigate, onAddToCart, cart, initialPresetId, onPresetConsumed, scrollToPresets }) => {
   const [suitType, setSuitType] = useState('1pc');
   const [perforation, setPerforation] = useState('perf-partial');
   const [protection, setProtection] = useState('prot-standard');
@@ -18,11 +18,36 @@ const SuitConfigurator = ({ onNavigate, onAddToCart, cart }) => {
   const [showDesignGuide, setShowDesignGuide] = useState(false);
   const [showUploadWorkflow, setShowUploadWorkflow] = useState(false);
   const fileInputRef = useRef(null);
+  const presetsSectionRef = useRef(null);
 
   useEffect(() => {
     updateSEO('configure');
     setTimeout(() => setIsLoaded(true), 80);
   }, []);
+
+  // If the user picked a preset on the Home page (or elsewhere) before
+  // arriving here, apply it automatically so "Select Preset" actually
+  // configures the suit instead of just landing on a blank configurator.
+  useEffect(() => {
+    if (initialPresetId) {
+      const preset = teamPresets.find(p => p.id === initialPresetId);
+      if (preset) applyPreset(preset);
+      onPresetConsumed?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPresetId]);
+
+  // When the user arrives via the "Presets" nav link, scroll straight to
+  // the Team Presets section instead of leaving them at the top of the
+  // Suit Type step.
+  useEffect(() => {
+    if (scrollToPresets) {
+      const timer = setTimeout(() => {
+        presetsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [scrollToPresets]);
 
   const calculatePrice = () => {
     const suit = suitTypes.find(s => s.id === suitType);
@@ -372,7 +397,7 @@ const SuitConfigurator = ({ onNavigate, onAddToCart, cart }) => {
               )}
             </div>
 
-            <div className="bg-slate-900/40 rounded-2xl p-5 sm:p-6 border border-slate-800 hover:border-slate-700 transition-all duration-300">
+            <div ref={presetsSectionRef} className="bg-slate-900/40 rounded-2xl p-5 sm:p-6 border border-slate-800 hover:border-slate-700 transition-all duration-300 scroll-mt-36">
               <h3 className="font-display text-base font-bold text-slate-100 mb-2">Team Presets</h3>
               <p className="text-xs text-slate-400 mb-5">One-click apply professional racing configurations</p>
               <div className="grid sm:grid-cols-3 gap-3">
