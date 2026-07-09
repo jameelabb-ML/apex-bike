@@ -194,7 +194,7 @@ const LandingHome = ({ onNavigate, onAddToCart }) => {
                     <span className="text-xs text-slate-500">{preset.colorScheme}</span>
                     <span className="font-display text-xl font-bold text-orange-400">${preset.basePrice.toLocaleString()}</span>
                   </div>
-                  <button onClick={() => onNavigate('configure')} className="w-full bg-slate-800 hover:bg-orange-500 text-slate-300 hover:text-white font-medium py-2.5 rounded-lg border border-slate-700 hover:border-orange-500 transition-all duration-300">
+                  <button onClick={() => onNavigate('configure', preset.id)} className="w-full bg-slate-800 hover:bg-orange-500 text-slate-300 hover:text-white font-medium py-2.5 rounded-lg border border-slate-700 hover:border-orange-500 transition-all duration-300">
                     Select Preset
                   </button>
                 </div>
