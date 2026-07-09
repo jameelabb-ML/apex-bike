@@ -13,6 +13,9 @@ const App = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // Holds a team-preset id that was selected on the Home page so the
+  // Configurator can apply it automatically when it opens.
+  const [presetToApply, setPresetToApply] = useState(null);
 
   useEffect(() => {
     preloadImages([
@@ -46,12 +49,20 @@ const App = () => {
   const cartTotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
 
-  const navigateTo = (view) => {
-    if (view === currentView) { setMobileMenuOpen(false); return; }
+  // `payload` optionally carries a team-preset id (e.g. from the Home page's
+  // "Select Preset" cards) so the Configurator can apply that exact
+  // suit/perforation/protection combination as soon as it opens.
+  const navigateTo = (view, payload = null) => {
+    if (view === currentView) {
+      setMobileMenuOpen(false);
+      if (payload) setPresetToApply(payload);
+      return;
+    }
     setIsTransitioning(true);
     setMobileMenuOpen(false);
     setTimeout(() => {
       setCurrentView(view);
+      setPresetToApply(payload);
       window.scrollTo({ top: 0, behavior: 'instant' });
       setTimeout(() => setIsTransitioning(false), 150);
     }, 250);
@@ -59,11 +70,34 @@ const App = () => {
 
   const renderView = () => {
     switch (currentView) {
-      case 'home': return <LandingHome onNavigate={navigateTo} onAddToCart={addToCart} />;
-      case 'configure': return <SuitConfigurator onNavigate={navigateTo} onAddToCart={addToCart} cart={cart} />;
-      case 'measure': return <MeasurementForm onNavigate={navigateTo} />;
-      case 'presets': return <SuitConfigurator onNavigate={navigateTo} onAddToCart={addToCart} cart={cart} />;
-      default: return <LandingHome onNavigate={navigateTo} onAddToCart={addToCart} />;
+      case 'home':
+        return <LandingHome onNavigate={navigateTo} onAddToCart={addToCart} />;
+      case 'configure':
+        return (
+          <SuitConfigurator
+            onNavigate={navigateTo}
+            onAddToCart={addToCart}
+            cart={cart}
+            initialPresetId={presetToApply}
+            onPresetConsumed={() => setPresetToApply(null)}
+            scrollToPresets={false}
+          />
+        );
+      case 'measure':
+        return <MeasurementForm onNavigate={navigateTo} />;
+      case 'presets':
+        return (
+          <SuitConfigurator
+            onNavigate={navigateTo}
+            onAddToCart={addToCart}
+            cart={cart}
+            initialPresetId={presetToApply}
+            onPresetConsumed={() => setPresetToApply(null)}
+            scrollToPresets={true}
+          />
+        );
+      default:
+        return <LandingHome onNavigate={navigateTo} onAddToCart={addToCart} />;
     }
   };
 
